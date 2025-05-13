@@ -1,0 +1,2 @@
+class TensorPlugin():
+    pass
