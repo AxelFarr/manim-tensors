@@ -1,0 +1,6 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+
+# Manim generated files
+media/
