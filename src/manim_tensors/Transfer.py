@@ -9,6 +9,10 @@ class Transfer():
         self.init_transfer()
 
     def init_transfer(self):
+        # Offsets
+        self.initial_ioffset = 0
+        self.initial_doffset = 0
+        
         # Trigger
         self.trig = 1
 
@@ -85,7 +89,7 @@ class Transfer():
         i3 = (self.it // (self.icnt0 * self.icnt1 * self.icnt2)) % self.icnt3
         i4 = (self.it // (self.icnt0 * self.icnt1 * self.icnt2 * self.icnt3)) % self.icnt4
         i5 = (self.it // (self.icnt0 * self.icnt1 * self.icnt2 * self.icnt3 * self.icnt4)) % self.icnt5
-        return i5 * self.dim5 + i4 * self.dim4 + i3 * self.dim3 + i2 * self.dim2 + i1 * self.dim1 + i0
+        return i5 * self.dim5 + i4 * self.dim4 + i3 * self.dim3 + i2 * self.dim2 + i1 * self.dim1 + i0 + self.initial_ioffset
 
     def get_curr_doffset(self):
         di0 = self.it % self.dicnt0
@@ -94,7 +98,23 @@ class Transfer():
         di3 = (self.it // (self.dicnt0 * self.dicnt1 * self.dicnt2)) % self.dicnt3
         di4 = (self.it // (self.dicnt0 * self.dicnt1 * self.dicnt2 * self.dicnt3)) % self.dicnt4
         di5 = (self.it // (self.dicnt0 * self.dicnt1 * self.dicnt2 * self.dicnt3 * self.dicnt4)) % self.dicnt5
-        return di5 * self.ddim5 + di4 * self.ddim4 + di3 * self.ddim3 + di2 * self.ddim2 + di1 * self.ddim1 + di0
+        return di5 * self.ddim5 + di4 * self.ddim4 + di3 * self.ddim3 + di2 * self.ddim2 + di1 * self.ddim1 + di0 + self.initial_doffset
+
+    def get_nb_trigs(self):
+        if self.trig == 1:
+            return min(self.icnt1 * self.icnt2 * self.icnt3 * self.icnt4 * self.icnt5,
+                       self.dicnt1 * self.dicnt2 * self.dicnt3 * self.dicnt4 * self.dicnt5)
+        elif self.trig == 2:
+            return min(self.icnt2 * self.icnt3 * self.icnt4 * self.icnt5,
+                       self.dicnt2 * self.dicnt3 * self.dicnt4 * self.dicnt5)
+        elif self.trig == 3:
+            return min(self.icnt3 * self.icnt4 * self.icnt5,
+                       self.dicnt3 * self.dicnt4 * self.dicnt5)
+        elif self.trig == 4:
+            return min(self.icnt4 * self.icnt5,
+                       self.dicnt4 * self.dicnt5)
+        elif self.trig == 5:
+            return min(self.icnt5, self.dicnt5)
 
     def trigger(self, scene):
         anim = []
@@ -110,12 +130,10 @@ class Transfer():
             dx, dy, dz = self.dst.get_coord_from_offset(doffset)
             dst_unit = src_unit.copy()
             anim.append(self.dst.add_unit(dst_unit, dx, dy, dz))
-            print(self.it, ioffset, doffset, dx, dy, dz)
 
             # Update transfer counter
             self.it += 1
             if self.itrig() or self.dtrig():
-                print(self.it, ioffset, doffset, dx, dy, dz)
                 break
 
         # Play animations
